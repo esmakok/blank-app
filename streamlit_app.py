@@ -256,12 +256,17 @@ def show_visualization(zip_buffer_el31, zip_buffer_zblir, df_zdm240):
     el31_zip = zipfile.ZipFile(zip_buffer_el31)
     zblir_zip = zipfile.ZipFile(zip_buffer_zblir)
 
-    # Tesisat isimlerini bul
-    el31_names = [f.replace(".csv", "").replace("-A", "").replace("-AB", "") for f in el31_zip.namelist()]
-    zblir_names = [f.replace(".csv", "").replace("-A", "").replace("-AB", "") for f in zblir_zip.namelist()]
-    zdm240_names = df_zdm240["Tesisat"].unique().tolist()
+    # Tesisat isimlerini güvenli şekilde al
+    el31_names = [f.replace(".csv", "").replace("-A", "").replace("-AB", "") for f in el31_zip.namelist()] if el31_zip else []
+    zblir_names = [f.replace(".csv", "").replace("-A", "").replace("-AB", "") for f in zblir_zip.namelist()] if zblir_zip else []
+    zdm240_names = df_zdm240["Tesisat"].unique().tolist() if df_zdm240 is not None else []
 
+    # Tüm tesisatları birleştir
     all_names = sorted(set(el31_names) | set(zblir_names) | set(zdm240_names))
+    if not all_names:
+        st.warning("Gösterilecek tesisat verisi bulunamadı.")
+        return
+
     selected = st.selectbox("Bir tesisat seçin:", all_names)
 
     # 🔹 EL31 P grafiği
