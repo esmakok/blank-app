@@ -259,11 +259,11 @@ def show_visualization(zip_buffer_el31, zip_buffer, df_grouped):
         el31_zip = zipfile.ZipFile(zip_buffer_el31)
         zblir_zip = zipfile.ZipFile(zip_buffer)
 
-        el31_names = [f.replace(".csv", "").replace("-A", "").replace("-AB", "") for f in el31_zip.namelist()]
-        zblir_names = [f.replace(".csv", "").replace("-A", "").replace("-AB", "") for f in zblir_zip.namelist()]
-        zdm240_names = df_grouped["Tesisat"].unique().tolist()
+        el31_names = [str(f).replace(".csv", "").replace("-A", "").replace("-AB", "") for f in el31_zip.namelist()]
+        zblir_names = [str(f).replace(".csv", "").replace("-A", "").replace("-AB", "") for f in zblir_zip.namelist()]
+        zdm240_names = [str(t) for t in df_grouped["Tesisat"].unique()]
 
-        all_names = sorted(set(el31_names) | set(zblir_names) | set(zdm240_names))  # ❌ hata burada
+        all_names = sorted(set(el31_names) | set(zblir_names) | set(zdm240_names))
 
         selected = st.selectbox("Bir tesisat seçin:", all_names)
 
