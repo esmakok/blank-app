@@ -297,20 +297,20 @@ def show_visualization(zip_buffer_el31, zip_buffer, df_grouped):
                 st.subheader(f"{endeks} Endeksi")
                 st.pyplot(plot_zblir_graph(df_zblir, endeks))
 
-       # ZDM240
+       
+        # ZDM240
         if selected in zdm240_names:
-            try:
-                selected_int = int(selected) if selected.isdigit() else selected
-                df_zdm = df_grouped[df_grouped["Tesisat"] == selected_int]
-                
-                if not df_zdm.empty:
-                    st.subheader("ZDM240 Tüketim Grafiği")
-                    st.pyplot(plot_zdm240_graph(df_zdm))
-                else:
-                    st.warning("Bu tesisat için ZDM240 verisi bulunamadı.")
-            except Exception as e:
-                st.error(f"ZDM240 çizimi sırasında hata: {e}")
-    
+            selected_int = int(selected) if selected.isdigit() else selected
+            df_zdm = df_grouped[df_grouped["Tesisat"] == selected_int]
+
+            if not df_zdm.empty:
+                st.subheader("ZDM240 Tüketim Grafiği")
+                st.pyplot(plot_zdm240_graph(df_zdm))
+            else:
+                st.warning("Bu tesisat için ZDM240 verisi bulunamadı.")
+
+    except Exception as e:
+        st.error(f"🚨 Görselleştirme sırasında hata oluştu: {e}")
 
 # ===============================
 # GÖRSELLEŞTİRMEYİ TETİKLE
