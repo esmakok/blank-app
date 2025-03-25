@@ -288,6 +288,9 @@ def show_visualization(zip_buffer_el31, zip_buffer_zblir, df_zdm240):
 
 
 
+# 🎬 Tüm veriler hazırsa grafik arayüzünü göster
+if el31_file and zblir_file and zdm240_file:
+    show_visualization(zip_buffer_el31, zip_buffer, st.session_state.df_zdm240_cleaned)
 
 
 
