@@ -263,9 +263,10 @@ def show_visualization(zip_buffer_el31, zip_buffer, df_grouped):
         zblir_names = [f.replace(".csv", "").replace("-A", "").replace("-AB", "") for f in zblir_zip.namelist()]
         zdm240_names = df_grouped["Tesisat"].unique().tolist()
 
-        all_names = sorted(set(el31_names) | set(zblir_names) | set(zdm240_names))
+        all_names = sorted(set(el31_names) | set(zblir_names) | set(zdm240_names))  # ❌ hata burada
 
         selected = st.selectbox("Bir tesisat seçin:", all_names)
+
 
         # EL31
         el31_file = next((f for f in el31_zip.namelist() if f.startswith(selected)), None)
