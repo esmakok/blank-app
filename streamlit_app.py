@@ -324,18 +324,21 @@ def show_visualization(zip_buffer_el31, zip_buffer, df_grouped):
             else:
                 zblir_names.append(tesisat)
 
-        # =====================
-        # ZDM240 — sadece daha önce olmayanları ekle
-        # =====================
-        used_tesisats = set(name.replace("-A", "").replace("-AB", "") for name in el31_names + zblir_names)
-        zdm240_all = set(str(t) for t in df_grouped["Tesisat"].unique())
-        zdm240_names = sorted(list(zdm240_all - used_tesisats))
+# ZDM240 — sadece daha önce olmayanları ekle
+# =====================
+used_tesisats = set(name.replace("-A", "").replace("-AB", "") for name in el31_names + zblir_names)
 
-        # =====================
-        # Tüm İsimleri Birleştir
-        # =====================
-        all_names = sorted(el31_names + zblir_names + zdm240_names)
-        selected = st.selectbox("Bir tesisat seçin:", all_names)
+# SADECE sayılardan oluşan tesisatlar
+zdm240_all = set(str(t) for t in df_grouped["Tesisat"].unique() if str(t).isdigit())
+
+zdm240_names = sorted(list(zdm240_all - used_tesisats))
+
+# =====================
+# Tüm İsimleri Birleştir
+# =====================
+all_names = sorted(el31_names + zblir_names + zdm240_names)
+selected = st.selectbox("Bir tesisat seçin:", all_names)
+
 
         # =====================
         # EL31 GRAFİĞİ
