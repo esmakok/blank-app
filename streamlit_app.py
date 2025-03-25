@@ -220,7 +220,7 @@ def plot_el31_graph(df):
 
 def plot_zblir_graph(df, endeks):
     df = df[df["Endeks Türü"].str.lower() == endeks.lower()]
-    df["Son Okuma Tarihi"] = pd.to_datetime(df["Son Okuma Tarihi"], dayfirst=True)
+    df["Son Okuma Tarihi"] = pd.to_datetime(df["Son Okuma Tarihi"], format="%Y-%m-%d", errors='coerce')
     df = df.sort_values("Son Okuma Tarihi")
     fig, ax = plt.subplots()
     ax.plot(df["Son Okuma Tarihi"], df["Ortalama Tüketim"], marker='o')
