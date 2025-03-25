@@ -212,15 +212,23 @@ def plot_el31_graph(df):
     df = df.sort_values("Sayaç okuma tarihi")
     df["Okunan sayaç durumu"] = df["Okunan sayaç durumu"].astype(str).str.replace(",", ".").astype(float)
 
-    # Sıfır olmayan değerlerin ortalamasını al
     avg_value = df[df["Okunan sayaç durumu"] > 0]["Okunan sayaç durumu"].mean()
 
     fig, ax = plt.subplots()
     ax.plot(df["Sayaç okuma tarihi"], df["Okunan sayaç durumu"], marker='o', label='Okunan Sayaç Durumu')
 
-    # Ortalama çizgisi
-    ax.axhline(avg_value, color='red', linestyle='--', label=f'Ortalama: {avg_value:.2f}')
+    # Muhatap değişim tarihi varsa belirle
+    if "Muhatap adı" in df.columns:
+        unique_names = df["Muhatap adı"].unique()
+        if len(unique_names) > 1:
+            # Değişim olan ilk tarihi bul
+            name_changes = df["Muhatap adı"].ne(df["Muhatap adı"].shift())
+            change_dates = df.loc[name_changes, "Sayaç okuma tarihi"]
+            if len(change_dates) > 1:
+                change_date = change_dates.iloc[1]  # ikinci isimle başlayan ilk tarih
+                ax.axvline(change_date, color='purple', linestyle=':', label=f'Muhatap Değişim: {change_date.date()}')
 
+    ax.axhline(avg_value, color='red', linestyle='--', label=f'Ortalama: {avg_value:.2f}')
     ax.set_xlabel("Sayaç Okuma Tarihi")
     ax.set_ylabel("Okunan Sayaç Durumu")
     ax.set_title("P Endeksi Grafiği")
@@ -235,15 +243,22 @@ def plot_zblir_graph(df, endeks):
     df["Ortalama Tüketim"] = df["Ortalama Tüketim"].astype(str).str.replace(",", ".").astype(float)
     df = df.dropna(subset=["Son Okuma Tarihi", "Ortalama Tüketim"])
 
-    # 0'dan büyük değerlerin ortalamasını hesapla
     avg_value = df[df["Ortalama Tüketim"] > 0]["Ortalama Tüketim"].mean()
 
     fig, ax = plt.subplots()
     ax.plot(df["Son Okuma Tarihi"], df["Ortalama Tüketim"], marker='o', label='Ortalama Tüketim')
 
-    # Ortalama çizgisi
+    # Muhatap değişim tarihi varsa göster
+    if "Muhatap Adı" in df.columns:
+        unique_names = df["Muhatap Adı"].unique()
+        if len(unique_names) > 1:
+            name_changes = df["Muhatap Adı"].ne(df["Muhatap Adı"].shift())
+            change_dates = df.loc[name_changes, "Son Okuma Tarihi"]
+            if len(change_dates) > 1:
+                change_date = change_dates.iloc[1]
+                ax.axvline(change_date, color='purple', linestyle=':', label=f'Muhatap Değişim: {change_date.date()}')
+
     ax.axhline(avg_value, color='green', linestyle='--', label=f'Ortalama: {avg_value:.2f}')
-    
     ax.set_ylim(bottom=0)
     ax.set_xlabel("Son Okuma Tarihi")
     ax.set_ylabel("Ortalama Tüketim")
@@ -251,6 +266,7 @@ def plot_zblir_graph(df, endeks):
     ax.legend()
     fig.tight_layout()
     return fig
+    
 
 def plot_zdm240_graph(df):
     fig, ax = plt.subplots()
