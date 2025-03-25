@@ -235,22 +235,32 @@ def plot_zblir_graph(df, endeks):
 
 def plot_zdm240_graph(df):
     fig, ax = plt.subplots()
+    
+    # Ay isimleri ve etiketleri
     aylar = ['Tük_Ocak', 'Tük_Şubat', 'Tük_Mart', 'Tük_Nisan', 'Tük_Mayıs', 'Tük_Haziran',
              'Tük_Temmuz', 'Tük_Ağustos', 'Tük_Eylül', 'Tük_Ekim', 'Tük_Kasım', 'Tük_Aralık']
     ay_labels = ['Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran',
                  'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık']
 
+    # Ay sütunlarını float'a çevir (virgülleri noktaya çevir)
+    df = df.copy()
+    for col in aylar:
+        df[col] = df[col].astype(str).str.replace(",", ".").astype(float)
+
+    # Her yıl için çizim
     for yil in df["Mali yıl"].unique():
         yil_df = df[df["Mali yıl"] == yil]
         tuk_values = yil_df[aylar].values.flatten()
-        ax.plot(ay_labels, tuk_values, marker='o', label=str(yil))
+        if tuk_values.size > 0:
+            ax.plot(ay_labels, tuk_values, marker='o', label=str(yil))
 
     ax.set_xlabel("Ay")
-    ax.set_ylabel("Tüketim")
+    ax.set_ylabel("Tüketim (kWh)")
     ax.set_title("Yıllık Tüketim Grafiği")
     ax.legend()
     fig.tight_layout()
     return fig
+
 
 # ===============================
 # TESİSAT GÖRSEL PANELİ
