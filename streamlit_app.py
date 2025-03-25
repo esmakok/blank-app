@@ -249,68 +249,42 @@ def plot_zdm240_graph(df):
     return fig
 
 # 🔧 Tesisat Görüntüleme Paneli
-def show_visualization(zip_buffer_el31, zip_buffer_zblir, df_zdm240):
+# 🎯 Streamlit Arayüzü (zip'leri sistemden alır)
+def show_visualization(zip_buffer_el31, zip_buffer, df_grouped):
     st.title("Tesisat Görüntüleme")
 
-    # 1️⃣ Güvenli Başlangıç Değerleri
-    el31_names = []
-    zblir_names = []
-    zdm240_names = []
-    el31_zip = None
-    zblir_zip = None
+    # Zip dosyalarını aç
+    el31_zip = zipfile.ZipFile(zip_buffer_el31)
+    zblir_zip = zipfile.ZipFile(zip_buffer)
 
-    # 2️⃣ EL31 ZIP açma ve isim çekme
-    try:
-        el31_zip = zipfile.ZipFile(zip_buffer_el31)
-        el31_names = [f.replace(".csv", "").replace("-A", "").replace("-AB", "") for f in el31_zip.namelist()]
-    except:
-        pass
+    # Tesisat isimlerini bul
+    el31_names = [f.replace(".csv", "").replace("-A", "").replace("-AB", "") for f in el31_zip.namelist()]
+    zblir_names = [f.replace(".csv", "").replace("-A", "").replace("-AB", "") for f in zblir_zip.namelist()]
+    zdm240_names = df_grouped["Tesisat"].unique().tolist()
 
-    # 3️⃣ ZBLIR ZIP açma ve isim çekme
-    try:
-        zblir_zip = zipfile.ZipFile(zip_buffer_zblir)
-        zblir_names = [f.replace(".csv", "").replace("-A", "").replace("-AB", "") for f in zblir_zip.namelist()]
-    except:
-        pass
-
-    # 4️⃣ ZDM240 tesisat isimleri
-    try:
-        zdm240_names = df_zdm240["Tesisat"].unique().tolist()
-    except:
-        pass
-
-    # 5️⃣ Hepsini birleştir
     all_names = sorted(set(el31_names) | set(zblir_names) | set(zdm240_names))
-
-    if not all_names:
-        st.warning("Hiçbir tesisat bulunamadı.")
-        return
-
     selected = st.selectbox("Bir tesisat seçin:", all_names)
 
-    # 6️⃣ EL31 P Grafiği
-    if el31_zip:
-        el31_file = next((f for f in el31_zip.namelist() if f.startswith(selected)), None)
-        if el31_file:
-            df_el31 = pd.read_csv(el31_zip.open(el31_file), sep=";")
-            st.subheader("P Endeksi")
-            st.pyplot(plot_el31_graph(df_el31))
+    # 🔹 EL31 P grafiği
+    el31_file = next((f for f in el31_zip.namelist() if f.startswith(selected)), None)
+    if el31_file:
+        df_el31 = pd.read_csv(el31_zip.open(el31_file), sep=";")
+        st.subheader("P Endeksi")
+        st.pyplot(plot_el31_graph(df_el31))
 
-    # 7️⃣ ZBLIR T1-T2-T3 Grafikleri
-    if zblir_zip:
-        zblir_file = next((f for f in zblir_zip.namelist() if f.startswith(selected)), None)
-        if zblir_file:
-            df_zblir = pd.read_csv(zblir_zip.open(zblir_file), sep=";")
-            for endeks in ["T1", "T2", "T3"]:
-                st.subheader(f"{endeks} Endeksi")
-                st.pyplot(plot_zblir_graph(df_zblir, endeks))
+    # 🔹 ZBLIR T1, T2, T3 grafikleri
+    zblir_file = next((f for f in zblir_zip.namelist() if f.startswith(selected)), None)
+    if zblir_file:
+        df_zblir = pd.read_csv(zblir_zip.open(zblir_file), sep=";")
+        for endeks in ["T1", "T2", "T3"]:
+            st.subheader(f"{endeks} Endeksi")
+            st.pyplot(plot_zblir_graph(df_zblir, endeks))
 
-    # 8️⃣ ZDM240 Yıllık Tüketim Grafiği
-    if df_zdm240 is not None and selected in zdm240_names:
+    # 🔹 ZDM240 grafiği
+    if selected in zdm240_names:
         df_zdm = df_zdm240[df_zdm240["Tesisat"] == selected]
         st.subheader("ZDM240 Tüketim Grafiği")
         st.pyplot(plot_zdm240_graph(df_zdm))
-
 
 if el31_file and zblir_file and "df_zdm240_cleaned" in st.session_state:
     show_visualization(zip_buffer_el31, zip_buffer, st.session_state.df_zdm240_cleaned)
