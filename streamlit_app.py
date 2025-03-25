@@ -292,35 +292,39 @@ def show_visualization(zip_buffer_el31, zip_buffer, df_grouped):
         el31_zip = zipfile.ZipFile(zip_buffer_el31)
         zblir_zip = zipfile.ZipFile(zip_buffer)
 
-        el31_names = [str(f).replace(".csv", "").replace("-A", "").replace("-AB", "") for f in el31_zip.namelist()]
-        zblir_names = [str(f).replace(".csv", "").replace("-A", "").replace("-AB", "") for f in zblir_zip.namelist()]
+        # Dosya adlarını tam haliyle al (örn: 4003930-A, 4003930-AB, 4003930)
+        el31_names = [f.replace(".csv", "") for f in el31_zip.namelist()]
+        zblir_names = [f.replace(".csv", "") for f in zblir_zip.namelist()]
+
+        # ZDM240'daki tesisatları int yerine string yap
         zdm240_names = [str(t) for t in df_grouped["Tesisat"].unique()]
 
-        all_names = sorted(set(el31_names) | set(zblir_names) | set(zdm240_names))
+        # Seçim için birleşik liste
+        all_names = sorted(set(el31_names + zblir_names))
 
         selected = st.selectbox("Bir tesisat seçin:", all_names)
 
-
-        # EL31
-        el31_file = next((f for f in el31_zip.namelist() if f.startswith(selected)), None)
+        # ================= EL31 =================
+        el31_file = next((f for f in el31_zip.namelist() if f.replace(".csv", "") == selected), None)
         if el31_file:
             df_el31 = pd.read_csv(el31_zip.open(el31_file), sep=";")
             st.subheader("P Endeksi")
             st.pyplot(plot_el31_graph(df_el31))
 
-        # ZBLIR
-        zblir_file = next((f for f in zblir_zip.namelist() if f.startswith(selected)), None)
+        # ================= ZBLIR =================
+        zblir_file = next((f for f in zblir_zip.namelist() if f.replace(".csv", "") == selected), None)
         if zblir_file:
             df_zblir = pd.read_csv(zblir_zip.open(zblir_file), sep=";")
             for endeks in ["T1", "T2", "T3"]:
                 st.subheader(f"{endeks} Endeksi")
                 st.pyplot(plot_zblir_graph(df_zblir, endeks))
 
-       
-        # ZDM240
-        if selected in zdm240_names:
-            selected_int = int(selected) if selected.isdigit() else selected
-            df_zdm = df_grouped[df_grouped["Tesisat"] == selected_int]
+        # ================= ZDM240 (suffixsiz) =================
+        # Seçilen tesisat A/AB ile bitiyorsa ana numarayı al
+        base_selected = selected.split("-")[0]
+
+        if base_selected in zdm240_names:
+            df_zdm = df_grouped[df_grouped["Tesisat"].astype(str) == base_selected]
 
             if not df_zdm.empty:
                 st.subheader("ZDM240 Tüketim Grafiği")
