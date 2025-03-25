@@ -217,15 +217,14 @@ def plot_el31_graph(df):
     fig, ax = plt.subplots()
     ax.plot(df["Sayaç okuma tarihi"], df["Okunan sayaç durumu"], marker='o', label='Okunan Sayaç Durumu')
 
-    # Muhatap değişim tarihi varsa belirle
+    # Muhatap değişim tarihi
     if "Muhatap adı" in df.columns:
         unique_names = df["Muhatap adı"].unique()
         if len(unique_names) > 1:
-            # Değişim olan ilk tarihi bul
             name_changes = df["Muhatap adı"].ne(df["Muhatap adı"].shift())
             change_dates = df.loc[name_changes, "Sayaç okuma tarihi"]
             if len(change_dates) > 1:
-                change_date = change_dates.iloc[1]  # ikinci isimle başlayan ilk tarih
+                change_date = change_dates.iloc[1]
                 ax.axvline(change_date, color='purple', linestyle=':', label=f'Muhatap Değişim: {change_date.date()}')
 
     ax.axhline(avg_value, color='red', linestyle='--', label=f'Ortalama: {avg_value:.2f}')
@@ -233,8 +232,11 @@ def plot_el31_graph(df):
     ax.set_ylabel("Okunan Sayaç Durumu")
     ax.set_title("P Endeksi Grafiği")
     ax.legend()
+    ax.grid(True, which='both', linestyle='--', linewidth=0.5, color='lightgray')
     fig.tight_layout()
     return fig
+
+
 
 
 def plot_zblir_graph(df, endeks):
@@ -248,7 +250,6 @@ def plot_zblir_graph(df, endeks):
     fig, ax = plt.subplots()
     ax.plot(df["Son Okuma Tarihi"], df["Ortalama Tüketim"], marker='o', label='Ortalama Tüketim')
 
-    # Muhatap değişim tarihi varsa göster
     if "Muhatap Adı" in df.columns:
         unique_names = df["Muhatap Adı"].unique()
         if len(unique_names) > 1:
@@ -264,38 +265,32 @@ def plot_zblir_graph(df, endeks):
     ax.set_ylabel("Ortalama Tüketim")
     ax.set_title(f"{endeks.upper()} Endeksi Grafiği")
     ax.legend()
+    ax.grid(True, which='both', linestyle='--', linewidth=0.5, color='lightgray')
     fig.tight_layout()
     return fig
-    
+
+
 
 def plot_zdm240_graph(df):
     fig, ax = plt.subplots()
 
-    # Ay sütunları ve etiketler
     aylar = ['Tük_Ocak', 'Tük_Şubat', 'Tük_Mart', 'Tük_Nisan', 'Tük_Mayıs', 'Tük_Haziran',
              'Tük_Temmuz', 'Tük_Ağustos', 'Tük_Eylül', 'Tük_Ekim', 'Tük_Kasım', 'Tük_Aralık']
     ay_labels = ['Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran',
                  'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık']
 
-    # Ondalık düzeltmeleri yap
     df = df.copy()
     for col in aylar:
         df[col] = df[col].astype(str).str.replace(",", ".").astype(float)
 
-    # Her mali yıl için tüketim grafiği çiz
     for yil in df["Mali yıl"].unique():
         yil_df = df[df["Mali yıl"] == yil]
         tuk_values = yil_df[aylar].values.flatten()
-
         if len(tuk_values) == 12:
             ax.plot(ay_labels, tuk_values, marker='o', label=str(yil))
 
     ax.set_xlabel("Ay")
-    ax.set_ylabel("Tüketim (kWh)")
-    ax.set_title("Yıllık Tüketim Grafiği")
-    ax.legend()
-    fig.tight_layout()
-    return fig
+    ax.set_ylabel("Tüketim (k
 
 
 # ===============================
