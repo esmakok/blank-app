@@ -331,7 +331,9 @@ def show_visualization(zip_buffer_el31, zip_buffer, df_grouped):
         # =====================
         # ZDM240
         # =====================
-        zdm240_names = [str(t) for t in df_grouped["Tesisat"].unique()]
+        el31_zblir_tesisatlar = set(name.replace("-A", "").replace("-AB", "") for name in el31_names + zblir_names)
+        zdm240_all = set(str(t) for t in df_grouped["Tesisat"].unique())
+        zdm240_names = list(zdm240_all - el31_zblir_tesisatlar)
 
         # =====================
         # Tüm İsimleri Birleştir
