@@ -210,6 +210,7 @@ if zdm240_file:
 def plot_el31_graph(df):
     df["Sayaç okuma tarihi"] = pd.to_datetime(df["Sayaç okuma tarihi"], format="%Y-%m-%d", errors='coerce')
     df = df.sort_values("Sayaç okuma tarihi")
+    df["Okunan sayaç durumu"] = df["Okunan sayaç durumu"].astype(str).str.replace(",", ".").astype(float)
     fig, ax = plt.subplots()
     ax.plot(df["Sayaç okuma tarihi"], df["Okunan sayaç durumu"], marker='o')
     ax.set_xlabel("Sayaç Okuma Tarihi")
@@ -221,9 +222,11 @@ def plot_el31_graph(df):
 def plot_zblir_graph(df, endeks):
     df = df[df["Endeks Türü"].str.lower() == endeks.lower()]
     df["Son Okuma Tarihi"] = pd.to_datetime(df["Son Okuma Tarihi"], format="%Y-%m-%d", errors='coerce')
-    df = df.sort_values("Son Okuma Tarihi")
+    df["Ortalama Tüketim"] = df["Ortalama Tüketim"].astype(str).str.replace(",", ".").astype(float)
+    df = df.dropna(subset=["Son Okuma Tarihi", "Ortalama Tüketim"])
     fig, ax = plt.subplots()
     ax.plot(df["Son Okuma Tarihi"], df["Ortalama Tüketim"], marker='o')
+    ax.set_ylim(bottom=0)
     ax.set_xlabel("Son Okuma Tarihi")
     ax.set_ylabel("Ortalama Tüketim")
     ax.set_title(f"{endeks.upper()} Endeksi Grafiği")
