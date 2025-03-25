@@ -235,23 +235,24 @@ def plot_zblir_graph(df, endeks):
 
 def plot_zdm240_graph(df):
     fig, ax = plt.subplots()
-    
-    # Ay isimleri ve etiketleri
+
+    # Ay sütunları ve etiketler
     aylar = ['Tük_Ocak', 'Tük_Şubat', 'Tük_Mart', 'Tük_Nisan', 'Tük_Mayıs', 'Tük_Haziran',
              'Tük_Temmuz', 'Tük_Ağustos', 'Tük_Eylül', 'Tük_Ekim', 'Tük_Kasım', 'Tük_Aralık']
     ay_labels = ['Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran',
                  'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık']
 
-    # Ay sütunlarını float'a çevir (virgülleri noktaya çevir)
+    # Ondalık düzeltmeleri yap
     df = df.copy()
     for col in aylar:
         df[col] = df[col].astype(str).str.replace(",", ".").astype(float)
 
-    # Her yıl için çizim
+    # Her mali yıl için tüketim grafiği çiz
     for yil in df["Mali yıl"].unique():
         yil_df = df[df["Mali yıl"] == yil]
         tuk_values = yil_df[aylar].values.flatten()
-        if tuk_values.size > 0:
+
+        if len(tuk_values) == 12:
             ax.plot(ay_labels, tuk_values, marker='o', label=str(yil))
 
     ax.set_xlabel("Ay")
@@ -296,14 +297,20 @@ def show_visualization(zip_buffer_el31, zip_buffer, df_grouped):
                 st.subheader(f"{endeks} Endeksi")
                 st.pyplot(plot_zblir_graph(df_zblir, endeks))
 
-        # ZDM240
+       # ZDM240
         if selected in zdm240_names:
-            df_zdm = df_grouped[df_grouped["Tesisat"] == selected]
-            st.subheader("ZDM240 Tüketim Grafiği")
-            st.pyplot(plot_zdm240_graph(df_zdm))
-
-    except Exception as e:
-        st.error(f"🚨 Görselleştirme sırasında hata oluştu: {e}")
+            try:
+                selected_int = int(selected) if selected.isdigit() else selected
+                df_zdm = df_grouped[df_grouped["Tesisat"] == selected_int]
+                
+                if not df_zdm.empty:
+                    st.subheader("ZDM240 Tüketim Grafiği")
+                    st.pyplot(plot_zdm240_graph(df_zdm))
+                else:
+                    st.warning("Bu tesisat için ZDM240 verisi bulunamadı.")
+            except Exception as e:
+                st.error(f"ZDM240 çizimi sırasında hata: {e}")
+    
 
 # ===============================
 # GÖRSELLEŞTİRMEYİ TETİKLE
