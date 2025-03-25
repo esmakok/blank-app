@@ -296,7 +296,7 @@ def show_visualization(zip_buffer_el31, zip_buffer, df_grouped):
         # EL31
         # =====================
         el31_files_raw = [f.replace(".csv", "") for f in el31_zip.namelist()]
-        el31_tesisatlar = set(f.replace("-A", "").replace("-AB", "") for f in el31_files_raw)
+        el31_tesisatlar = set(name.split("-")[0] for name in el31_files_raw)
 
         el31_names = []
         for tesisat in el31_tesisatlar:
@@ -305,14 +305,14 @@ def show_visualization(zip_buffer_el31, zip_buffer, df_grouped):
                     el31_names.append(f"{tesisat}-A")
                 if f"{tesisat}-AB" in el31_files_raw:
                     el31_names.append(f"{tesisat}-AB")
-            else:
+            elif tesisat in el31_files_raw:
                 el31_names.append(tesisat)
 
         # =====================
         # ZBLIR
         # =====================
         zblir_files_raw = [f.replace(".csv", "") for f in zblir_zip.namelist()]
-        zblir_tesisatlar = set(f.replace("-A", "").replace("-AB", "") for f in zblir_files_raw)
+        zblir_tesisatlar = set(name.split("-")[0] for name in zblir_files_raw)
 
         zblir_names = []
         for tesisat in zblir_tesisatlar:
@@ -321,24 +321,21 @@ def show_visualization(zip_buffer_el31, zip_buffer, df_grouped):
                     zblir_names.append(f"{tesisat}-A")
                 if f"{tesisat}-AB" in zblir_files_raw:
                     zblir_names.append(f"{tesisat}-AB")
-            else:
+            elif tesisat in zblir_files_raw:
                 zblir_names.append(tesisat)
 
-        # ZDM240 — sadece daha önce olmayanları ekle
         # =====================
-        used_tesisats = set(name.replace("-A", "").replace("-AB", "") for name in el31_names + zblir_names)
-        
-        # SADECE sayılardan oluşan tesisatlar
+        # ZDM240 – sadece sayısal ve yeni olanlar
+        # =====================
+        used_tesisats = set(name.split("-")[0] for name in el31_names + zblir_names)
         zdm240_all = set(str(t) for t in df_grouped["Tesisat"].unique() if str(t).isdigit())
-        
         zdm240_names = sorted(list(zdm240_all - used_tesisats))
-        
+
         # =====================
         # Tüm İsimleri Birleştir
         # =====================
         all_names = sorted(el31_names + zblir_names + zdm240_names)
         selected = st.selectbox("Bir tesisat seçin:", all_names)
-
 
         # =====================
         # EL31 GRAFİĞİ
@@ -363,17 +360,13 @@ def show_visualization(zip_buffer_el31, zip_buffer, df_grouped):
         # ZDM240 GRAFİĞİ
         # =====================
         if selected in zdm240_names:
-            selected_int = int(selected) if selected.isdigit() else selected
+            selected_int = int(selected)
             df_zdm = df_grouped[df_grouped["Tesisat"] == selected_int]
 
             if not df_zdm.empty:
                 st.subheader("ZDM240 Tüketim Grafiği")
-                st.pyplot(plot_zdm240_graph(df_zdm))
-            else:
-                st.warning("Bu tesisat için ZDM240 verisi bulunamadı.")
+                st.pyplot(plot
 
-    except Exception as e:
-        st.error(f"🚨 Görselleştirme sırasında hata oluştu: {e}")
 
 
 # ===============================
