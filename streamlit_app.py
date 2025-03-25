@@ -266,57 +266,74 @@ def plot_zdm240_graph(df):
 # ===============================
 # TESİSAT GÖRSEL PANELİ
 # ===============================
-def show_visualization(zip_buffer_el31, zip_buffer, df_grouped):
+def show_visualization():
     st.title("Tesisat Görüntüleme")
 
-    try:
-        el31_zip = zipfile.ZipFile(zip_buffer_el31)
-        zblir_zip = zipfile.ZipFile(zip_buffer)
+    el31_ready = 'zip_buffer_el31' in st.session_state
+    zblir_ready = 'zip_buffer_zblir' in st.session_state
+    zdm240_ready = 'df_zdm240_cleaned' in st.session_state
 
-        el31_names = [str(f).replace(".csv", "").replace("-A", "").replace("-AB", "") for f in el31_zip.namelist()]
-        zblir_names = [str(f).replace(".csv", "").replace("-A", "").replace("-AB", "") for f in zblir_zip.namelist()]
-        zdm240_names = [str(t) for t in df_grouped["Tesisat"].unique()]
+    all_names = set()
 
-        all_names = sorted(set(el31_names) | set(zblir_names) | set(zdm240_names))
+    if el31_ready:
+        el31_zip = zipfile.ZipFile(st.session_state.zip_buffer_el31)
+        all_names.update([f.replace(".csv", "").replace("-A", "").replace("-AB", "") for f in el31_zip.namelist()])
+    if zblir_ready:
+        zblir_zip = zipfile.ZipFile(st.session_state.zip_buffer_zblir)
+        all_names.update([f.replace(".csv", "").replace("-A", "").replace("-AB", "") for f in zblir_zip.namelist()])
+    if zdm240_ready:
+        zdm_names = [str(t) for t in st.session_state.df_zdm240_cleaned["Tesisat"].unique()]
+        all_names.update(zdm_names)
 
-        selected = st.selectbox("Bir tesisat seçin:", all_names)
+    if not all_names:
+        st.warning("Hiçbir geçerli tesisat verisi bulunamadı.")
+        return
 
+    selected = st.selectbox("Bir tesisat seçin:", sorted(all_names))
 
-        # EL31
-        el31_file = next((f for f in el31_zip.namelist() if f.startswith(selected)), None)
-        if el31_file:
-            df_el31 = pd.read_csv(el31_zip.open(el31_file), sep=";")
+    # EL31
+    if el31_ready:
+        file = next((f for f in el31_zip.namelist() if f.startswith(selected)), None)
+        if file:
+            df = pd.read_csv(el31_zip.open(file), sep=";")
             st.subheader("P Endeksi")
-            st.pyplot(plot_el31_graph(df_el31))
+            st.pyplot(plot_el31_graph(df))
+        else:
+            st.info("Bu tesisat için EL31 verisi yok.")
+    else:
+        st.info("P Endeksi için EL31 dosyası yüklenmeli.")
 
-        # ZBLIR
-        zblir_file = next((f for f in zblir_zip.namelist() if f.startswith(selected)), None)
-        if zblir_file:
-            df_zblir = pd.read_csv(zblir_zip.open(zblir_file), sep=";")
+    # ZBLIR
+    if zblir_ready:
+        file = next((f for f in zblir_zip.namelist() if f.startswith(selected)), None)
+        if file:
+            df = pd.read_csv(zblir_zip.open(file), sep=";")
             for endeks in ["T1", "T2", "T3"]:
                 st.subheader(f"{endeks} Endeksi")
-                st.pyplot(plot_zblir_graph(df_zblir, endeks))
+                st.pyplot(plot_zblir_graph(df, endeks))
+        else:
+            st.info("Bu tesisat için ZBLIR verisi yok.")
+    else:
+        st.info("T1–T3 grafiklerini görmek için ZBLIR dosyası yüklenmeli.")
 
-       
-        # ZDM240
-        if selected in zdm240_names:
-            selected_int = int(selected) if selected.isdigit() else selected
-            df_zdm = df_grouped[df_grouped["Tesisat"] == selected_int]
-
-            if not df_zdm.empty:
-                st.subheader("ZDM240 Tüketim Grafiği")
-                st.pyplot(plot_zdm240_graph(df_zdm))
-            else:
-                st.warning("Bu tesisat için ZDM240 verisi bulunamadı.")
-
-    except Exception as e:
-        st.error(f"🚨 Görselleştirme sırasında hata oluştu: {e}")
+    # ZDM240
+    if zdm240_ready:
+        df_zdm = st.session_state.df_zdm240_cleaned
+        selected_int = int(selected) if selected.isdigit() else selected
+        df_filtered = df_zdm[df_zdm["Tesisat"] == selected_int]
+        if not df_filtered.empty:
+            st.subheader("ZDM240 Tüketim Grafiği")
+            st.pyplot(plot_zdm240_graph(df_filtered))
+        else:
+            st.info("Bu tesisat için ZDM240 verisi yok.")
+    else:
+        st.info("ZDM240 grafiği için ilgili dosya yüklenmeli.")
 
 # ===============================
-# GÖRSELLEŞTİRMEYİ TETİKLE
+# 📌 GÖRSELLEŞTİRME BUTONU
 # ===============================
-if el31_file and zblir_file and "df_zdm240_cleaned" in st.session_state:
-    show_visualization(zip_buffer_el31, zip_buffer, st.session_state.df_zdm240_cleaned)
+if st.button("📊 Tesisat Grafiklerini Görüntüle"):
+    show_visualization()
 
 
 
