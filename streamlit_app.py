@@ -208,7 +208,7 @@ if zdm240_file:
 
 # 🔹 Grafik: EL31 (P Endeksi)
 def plot_el31_graph(df):
-    df["Sayaç okuma tarihi"] = pd.to_datetime(df["Sayaç okuma tarihi"], dayfirst=True)
+    df["Sayaç okuma tarihi"] = pd.to_datetime(df["Sayaç okuma tarihi"], format="%Y-%m-%d", errors='coerce')
     df = df.sort_values("Sayaç okuma tarihi")
     fig, ax = plt.subplots()
     ax.plot(df["Sayaç okuma tarihi"], df["Okunan sayaç durumu"], marker='o')
