@@ -1,1 +1,7 @@
 streamlit
+matplotlib
+openpyxl
+streamlit-aggrid
+
+
+pyinstaller
