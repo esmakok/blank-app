@@ -292,34 +292,75 @@ def show_visualization(zip_buffer_el31, zip_buffer, df_grouped):
         el31_zip = zipfile.ZipFile(zip_buffer_el31)
         zblir_zip = zipfile.ZipFile(zip_buffer)
 
-        el31_names = [f.replace(".csv", "") for f in el31_zip.namelist()]
-        zblir_names = [f.replace(".csv", "") for f in zblir_zip.namelist()]
+        # =====================
+        # EL31
+        # =====================
+        el31_files_raw = [f.replace(".csv", "") for f in el31_zip.namelist()]
+        el31_tesisatlar = set(f.replace("-A", "").replace("-AB", "") for f in el31_files_raw)
 
+        el31_names = []
+        for tesisat in el31_tesisatlar:
+            a_file = f"{tesisat}-A"
+            ab_file = f"{tesisat}-AB"
+            if a_file in el31_files_raw or ab_file in el31_files_raw:
+                if a_file in el31_files_raw:
+                    el31_names.append(a_file)
+                if ab_file in el31_files_raw:
+                    el31_names.append(ab_file)
+            else:
+                el31_names.append(tesisat)
+
+        # =====================
+        # ZBLIR
+        # =====================
+        zblir_files_raw = [f.replace(".csv", "") for f in zblir_zip.namelist()]
+        zblir_tesisatlar = set(f.replace("-A", "").replace("-AB", "") for f in zblir_files_raw)
+
+        zblir_names = []
+        for tesisat in zblir_tesisatlar:
+            a_file = f"{tesisat}-A"
+            ab_file = f"{tesisat}-AB"
+            if a_file in zblir_files_raw or ab_file in zblir_files_raw:
+                if a_file in zblir_files_raw:
+                    zblir_names.append(a_file)
+                if ab_file in zblir_files_raw:
+                    zblir_names.append(ab_file)
+            else:
+                zblir_names.append(tesisat)
+
+        # =====================
+        # ZDM240
+        # =====================
         zdm240_names = [str(t) for t in df_grouped["Tesisat"].unique()]
 
+        # =====================
+        # Tüm İsimleri Birleştir
+        # =====================
         all_names = sorted(set(el31_names + zblir_names + zdm240_names))
-
         selected = st.selectbox("Bir tesisat seçin:", all_names)
-        
 
-
-        # EL31
-        el31_file = next((f for f in el31_zip.namelist() if f.startswith(selected)), None)
+        # =====================
+        # EL31 GRAFİĞİ
+        # =====================
+        el31_file = next((f for f in el31_zip.namelist() if f.replace(".csv", "") == selected), None)
         if el31_file:
             df_el31 = pd.read_csv(el31_zip.open(el31_file), sep=";")
             st.subheader("P Endeksi")
             st.pyplot(plot_el31_graph(df_el31))
 
-        # ZBLIR
-        zblir_file = next((f for f in zblir_zip.namelist() if f.startswith(selected)), None)
+        # =====================
+        # ZBLIR GRAFİKLERİ
+        # =====================
+        zblir_file = next((f for f in zblir_zip.namelist() if f.replace(".csv", "") == selected), None)
         if zblir_file:
             df_zblir = pd.read_csv(zblir_zip.open(zblir_file), sep=";")
             for endeks in ["T1", "T2", "T3"]:
                 st.subheader(f"{endeks} Endeksi")
                 st.pyplot(plot_zblir_graph(df_zblir, endeks))
 
-       
-        # ZDM240
+        # =====================
+        # ZDM240 GRAFİĞİ
+        # =====================
         if selected in zdm240_names:
             selected_int = int(selected) if selected.isdigit() else selected
             df_zdm = df_grouped[df_grouped["Tesisat"] == selected_int]
