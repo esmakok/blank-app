@@ -256,7 +256,7 @@ def show_visualization(zip_buffer_el31, zip_buffer_zblir, df_zdm240):
     try:
         el31_zip = zipfile.ZipFile(zip_buffer_el31)
         el31_names = [f.replace(".csv", "").replace("-A", "").replace("-AB", "") for f in el31_zip.namelist()]
-    except Exception as e:
+    except:
         el31_zip = None
         el31_names = []
 
@@ -264,18 +264,23 @@ def show_visualization(zip_buffer_el31, zip_buffer_zblir, df_zdm240):
     try:
         zblir_zip = zipfile.ZipFile(zip_buffer_zblir)
         zblir_names = [f.replace(".csv", "").replace("-A", "").replace("-AB", "") for f in zblir_zip.namelist()]
-    except Exception as e:
+    except:
         zblir_zip = None
         zblir_names = []
 
     # ZDM240 tesisat listesi
     try:
         zdm240_names = df_zdm240["Tesisat"].unique().tolist()
-    except Exception as e:
+    except:
         zdm240_names = []
 
-    # Üç listeyi birleştir
-    all_names = sorted(set(el31_names or []) | set(zblir_names or []) | set(zdm240_names or []))
+    # None hatasına karşı koruma
+    el31_names = el31_names if el31_names is not None else []
+    zblir_names = zblir_names if zblir_names is not None else []
+    zdm240_names = zdm240_names if zdm240_names is not None else []
+
+    # Tüm tesisatları birleştir
+    all_names = sorted(set(el31_names) | set(zblir_names) | set(zdm240_names))
 
     if not all_names:
         st.warning("Hiçbir tesisat bulunamadı.")
@@ -305,7 +310,6 @@ def show_visualization(zip_buffer_el31, zip_buffer_zblir, df_zdm240):
         df_zdm = df_zdm240[df_zdm240["Tesisat"] == selected]
         st.subheader("ZDM240 Tüketim Grafiği")
         st.pyplot(plot_zdm240_graph(df_zdm))
-
 
 
 if el31_file and zblir_file and "df_zdm240_cleaned" in st.session_state:
