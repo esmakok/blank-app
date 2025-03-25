@@ -290,7 +290,13 @@ def plot_zdm240_graph(df):
             ax.plot(ay_labels, tuk_values, marker='o', label=str(yil))
 
     ax.set_xlabel("Ay")
-    ax.set_ylabel("Tüketim (k
+    ax.set_ylabel("Tüketim (kWh)")
+    ax.set_title("Yıllık Tüketim Grafiği")
+    ax.legend()
+    ax.grid(True, which='both', linestyle='--', linewidth=0.5, color='lightgray')
+    fig.tight_layout()
+    return fig
+
 
 
 # ===============================
