@@ -211,25 +211,44 @@ def plot_el31_graph(df):
     df["Sayaç okuma tarihi"] = pd.to_datetime(df["Sayaç okuma tarihi"], format="%Y-%m-%d", errors='coerce')
     df = df.sort_values("Sayaç okuma tarihi")
     df["Okunan sayaç durumu"] = df["Okunan sayaç durumu"].astype(str).str.replace(",", ".").astype(float)
+
+    # Sıfır olmayan değerlerin ortalamasını al
+    avg_value = df[df["Okunan sayaç durumu"] > 0]["Okunan sayaç durumu"].mean()
+
     fig, ax = plt.subplots()
-    ax.plot(df["Sayaç okuma tarihi"], df["Okunan sayaç durumu"], marker='o')
+    ax.plot(df["Sayaç okuma tarihi"], df["Okunan sayaç durumu"], marker='o', label='Okunan Sayaç Durumu')
+
+    # Ortalama çizgisi
+    ax.axhline(avg_value, color='red', linestyle='--', label=f'Ortalama: {avg_value:.2f}')
+
     ax.set_xlabel("Sayaç Okuma Tarihi")
     ax.set_ylabel("Okunan Sayaç Durumu")
     ax.set_title("P Endeksi Grafiği")
+    ax.legend()
     fig.tight_layout()
     return fig
+
 
 def plot_zblir_graph(df, endeks):
     df = df[df["Endeks Türü"].str.lower() == endeks.lower()]
     df["Son Okuma Tarihi"] = pd.to_datetime(df["Son Okuma Tarihi"], format="%Y-%m-%d", errors='coerce')
     df["Ortalama Tüketim"] = df["Ortalama Tüketim"].astype(str).str.replace(",", ".").astype(float)
     df = df.dropna(subset=["Son Okuma Tarihi", "Ortalama Tüketim"])
+
+    # 0'dan büyük değerlerin ortalamasını hesapla
+    avg_value = df[df["Ortalama Tüketim"] > 0]["Ortalama Tüketim"].mean()
+
     fig, ax = plt.subplots()
-    ax.plot(df["Son Okuma Tarihi"], df["Ortalama Tüketim"], marker='o')
+    ax.plot(df["Son Okuma Tarihi"], df["Ortalama Tüketim"], marker='o', label='Ortalama Tüketim')
+
+    # Ortalama çizgisi
+    ax.axhline(avg_value, color='green', linestyle='--', label=f'Ortalama: {avg_value:.2f}')
+    
     ax.set_ylim(bottom=0)
     ax.set_xlabel("Son Okuma Tarihi")
     ax.set_ylabel("Ortalama Tüketim")
     ax.set_title(f"{endeks.upper()} Endeksi Grafiği")
+    ax.legend()
     fig.tight_layout()
     return fig
 
