@@ -300,13 +300,11 @@ def show_visualization(zip_buffer_el31, zip_buffer, df_grouped):
 
         el31_names = []
         for tesisat in el31_tesisatlar:
-            a_file = f"{tesisat}-A"
-            ab_file = f"{tesisat}-AB"
-            if a_file in el31_files_raw or ab_file in el31_files_raw:
-                if a_file in el31_files_raw:
-                    el31_names.append(a_file)
-                if ab_file in el31_files_raw:
-                    el31_names.append(ab_file)
+            if f"{tesisat}-A" in el31_files_raw or f"{tesisat}-AB" in el31_files_raw:
+                if f"{tesisat}-A" in el31_files_raw:
+                    el31_names.append(f"{tesisat}-A")
+                if f"{tesisat}-AB" in el31_files_raw:
+                    el31_names.append(f"{tesisat}-AB")
             else:
                 el31_names.append(tesisat)
 
@@ -318,27 +316,25 @@ def show_visualization(zip_buffer_el31, zip_buffer, df_grouped):
 
         zblir_names = []
         for tesisat in zblir_tesisatlar:
-            a_file = f"{tesisat}-A"
-            ab_file = f"{tesisat}-AB"
-            if a_file in zblir_files_raw or ab_file in zblir_files_raw:
-                if a_file in zblir_files_raw:
-                    zblir_names.append(a_file)
-                if ab_file in zblir_files_raw:
-                    zblir_names.append(ab_file)
+            if f"{tesisat}-A" in zblir_files_raw or f"{tesisat}-AB" in zblir_files_raw:
+                if f"{tesisat}-A" in zblir_files_raw:
+                    zblir_names.append(f"{tesisat}-A")
+                if f"{tesisat}-AB" in zblir_files_raw:
+                    zblir_names.append(f"{tesisat}-AB")
             else:
                 zblir_names.append(tesisat)
 
         # =====================
-        # ZDM240
+        # ZDM240 — sadece daha önce olmayanları ekle
         # =====================
-        el31_zblir_tesisatlar = set(name.replace("-A", "").replace("-AB", "") for name in el31_names + zblir_names)
+        used_tesisats = set(name.replace("-A", "").replace("-AB", "") for name in el31_names + zblir_names)
         zdm240_all = set(str(t) for t in df_grouped["Tesisat"].unique())
-        zdm240_names = list(zdm240_all - el31_zblir_tesisatlar)
+        zdm240_names = sorted(list(zdm240_all - used_tesisats))
 
         # =====================
         # Tüm İsimleri Birleştir
         # =====================
-        all_names = sorted(set(el31_names + zblir_names + zdm240_names))
+        all_names = sorted(el31_names + zblir_names + zdm240_names)
         selected = st.selectbox("Bir tesisat seçin:", all_names)
 
         # =====================
@@ -375,6 +371,7 @@ def show_visualization(zip_buffer_el31, zip_buffer, df_grouped):
 
     except Exception as e:
         st.error(f"🚨 Görselleştirme sırasında hata oluştu: {e}")
+
 
 # ===============================
 # GÖRSELLEŞTİRMEYİ TETİKLE
