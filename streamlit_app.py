@@ -302,59 +302,90 @@ def plot_zdm240_graph(df):
 # ===============================
 # TESİSAT GÖRSEL PANELİ
 # ===============================
-def show_visualization(zip_buffer_el31, zip_buffer, df_grouped):
+def show_visualization(zip_buffer_el31, zip_buffer_zblir, df_grouped):
     st.title("Tesisat Görüntüleme")
 
     try:
-        # Zip dosyalarını aç
         el31_zip = zipfile.ZipFile(zip_buffer_el31)
-        zblir_zip = zipfile.ZipFile(zip_buffer)
+        zblir_zip = zipfile.ZipFile(zip_buffer_zblir)
 
-        # Dosya adlarını (uzantısız) al
-        el31_raw = [f.replace(".csv", "") for f in el31_zip.namelist()]
-        zblir_raw = [f.replace(".csv", "") for f in zblir_zip.namelist()]
-
-        # Dosya adlarını kullanarak benzersiz tesisat listesi oluştur
-        el31_names = list(set(el31_raw))
-        zblir_names = list(set(zblir_raw))
-
-        # ZDM240 için "Tesisat" sütunundan alınan sade tesisat numaraları
+        el31_names = [f.replace(".csv", "") for f in el31_zip.namelist()]
+        zblir_names = [f.replace(".csv", "") for f in zblir_zip.namelist()]
         zdm240_names = [str(t) for t in df_grouped["Tesisat"].unique()]
 
-        # Tüm isimleri birleştir
-        all_names = sorted(set(el31_names + zblir_names + zdm240_names))
+        base_names = set(name.split("-")[0] for name in el31_names + zblir_names)
+        all_names = sorted(base_names)
 
-        # Dropdown gösterimi
-        selected = st.selectbox("Bir tesisat seçin:", all_names)
+        selected_base = st.selectbox("Bir tesisat seçin:", all_names)
 
-        # ========== EL31 (P Endeksi) ==========
-        el31_file = next((f for f in el31_zip.namelist() if f.replace(".csv", "") == selected), None)
-        if el31_file:
-            df_el31 = pd.read_csv(el31_zip.open(el31_file), sep=";")
-            st.subheader("P Endeksi")
-            st.pyplot(plot_el31_graph(df_el31))
+        # --- Satır 1: Tesisat-A: P, T1
+        col1, col2 = st.columns(2)
+        with col1:
+            file = f"{selected_base}-A.csv"
+            if file in el31_zip.namelist():
+                df_el31 = pd.read_csv(el31_zip.open(file), sep=";")
+                st.markdown("#### Tesisat-A | P Endeksi")
+                st.pyplot(plot_el31_graph(df_el31))
 
-        # ========== ZBLIR_002 (T Endeksleri) ==========
-        zblir_file = next((f for f in zblir_zip.namelist() if f.replace(".csv", "") == selected), None)
-        if zblir_file:
-            df_zblir = pd.read_csv(zblir_zip.open(zblir_file), sep=";")
-            for endeks in ["T1", "T2", "T3"]:
-                st.subheader(f"{endeks} Endeksi")
-                st.pyplot(plot_zblir_graph(df_zblir, endeks))
+        with col2:
+            file = f"{selected_base}-A.csv"
+            if file in zblir_zip.namelist():
+                df_zblir = pd.read_csv(zblir_zip.open(file), sep=";")
+                st.markdown("#### Tesisat-A | T1 Endeksi")
+                st.pyplot(plot_zblir_graph(df_zblir, "T1"))
 
-        # ========== ZDM240 (Yıllık Tüketim) ==========
-        # Dosya ismi A veya AB içerse bile ana tesisat numarasına göre ZDM240 verisi gösterilir
-        base_selected = selected.split("-")[0]
-        if base_selected in zdm240_names:
-            df_zdm = df_grouped[df_grouped["Tesisat"].astype(str) == base_selected]
+        # --- Satır 2: Tesisat-A: T2, T3
+        col1, col2 = st.columns(2)
+        with col1:
+            if 'df_zblir' in locals():
+                st.markdown("#### Tesisat-A | T2 Endeksi")
+                st.pyplot(plot_zblir_graph(df_zblir, "T2"))
+
+        with col2:
+            if 'df_zblir' in locals():
+                st.markdown("#### Tesisat-A | T3 Endeksi")
+                st.pyplot(plot_zblir_graph(df_zblir, "T3"))
+
+        # --- Satır 3: Tesisat-AB: P, T1
+        col1, col2 = st.columns(2)
+        with col1:
+            file = f"{selected_base}-AB.csv"
+            if file in el31_zip.namelist():
+                df_el31_ab = pd.read_csv(el31_zip.open(file), sep=";")
+                st.markdown("#### Tesisat-AB | P Endeksi")
+                st.pyplot(plot_el31_graph(df_el31_ab))
+
+        with col2:
+            file = f"{selected_base}-AB.csv"
+            if file in zblir_zip.namelist():
+                df_zblir_ab = pd.read_csv(zblir_zip.open(file), sep=";")
+                st.markdown("#### Tesisat-AB | T1 Endeksi")
+                st.pyplot(plot_zblir_graph(df_zblir_ab, "T1"))
+
+        # --- Satır 4: Tesisat-AB: T2, T3
+        col1, col2 = st.columns(2)
+        with col1:
+            if 'df_zblir_ab' in locals():
+                st.markdown("#### Tesisat-AB | T2 Endeksi")
+                st.pyplot(plot_zblir_graph(df_zblir_ab, "T2"))
+
+        with col2:
+            if 'df_zblir_ab' in locals():
+                st.markdown("#### Tesisat-AB | T3 Endeksi")
+                st.pyplot(plot_zblir_graph(df_zblir_ab, "T3"))
+
+        # --- Satır 5: ZDM240 (Q Mevsim Grafiği)
+        if selected_base in zdm240_names:
+            df_zdm = df_grouped[df_grouped["Tesisat"].astype(str) == selected_base]
             if not df_zdm.empty:
-                st.subheader("ZDM240 Tüketim Grafiği")
+                st.markdown("#### Tesisat | Mevsimsel Tüketim (ZDM240)")
                 st.pyplot(plot_zdm240_graph(df_zdm))
             else:
                 st.warning("Bu tesisat için ZDM240 verisi bulunamadı.")
 
     except Exception as e:
         st.error(f"🚨 Görselleştirme sırasında hata oluştu: {e}")
+
 
 
 # ===============================
