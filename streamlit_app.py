@@ -374,7 +374,15 @@ def show_visualization(zip_buffer_el31, zip_buffer, df_grouped):
 
 
 
+# ===============================
+# GÖRSELLEŞTİRMEYİ TETİKLE
+# ===============================
+# === GÖRSELLEŞTİRMEYİ TETİKLE ===
+if st.button("📊 Tesisat Grafiklerini Görüntüle"):
+    st.session_state["show_graphs"] = True
 
+if st.session_state.get("show_graphs", False):
+    show_visualization(zip_buffer_el31, zip_buffer, df_grouped)  
 
 
 
