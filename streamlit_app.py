@@ -630,9 +630,6 @@ if st.button("🚀 Analizi Başlat"):
 
                 below_threshold_count = sum(1 for val in p_values_nonzero if val < esik_deger)
 
-                last_three_values = p_values_nonzero[-3:] if len(p_values_nonzero) >= 3 else []
-                if all(val > p_avg for val in last_three_values):
-                    continue  # son üç değer ortalamanın üstündeyse şüpheli sayma
 
                 if below_threshold_count > alt_esik_sayisi:
                     if tesisat in combined_results:
